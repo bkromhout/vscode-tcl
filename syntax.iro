@@ -1,0 +1,357 @@
+#################################################################
+## Iro
+################################################################ 
+##
+## * Press Ctrl + '+'/'-' To Zoom in
+## * Press Ctrl + S to save and recalculate... 
+## * Documents are saved to web storage.
+## * Only one save slot supported.
+## * Matches cannot span lines.
+## * Unicode chars must be defined in \u0000 to \uffff format.
+## * All matches must be contained by a single group ( ... )
+## * Look behinds not permitted, (?<= or (?<!
+## * Look forwards are permitted (?= or (?!
+## * Constants are defined as __my_const = (......)
+## * The \= format allows unescaped regular expressions
+## * Constants referenced by match \= $${__my_const}
+## * Constants can reference other constants
+## * You are free to delete all the default scopes.
+## * Twitter : ainslec , Web: http://eeyo.io/iro
+##
+################################################################
+
+name                   = tcl
+file_extensions []     = tcl;
+textmate_uuid          = "c7017136-2ff2-48e9-bdb0-570cf238b4a2";
+
+################################################################
+## Styles
+################################################################
+
+styles [] {
+
+.comment : style {
+   color                 = green
+   italic                = true
+   textmate_scope        = comment
+}
+
+.command : style {
+   color                 = light_blue
+   textmate_scope        = keyword
+}
+
+.keyword : style {
+   color                 = violet
+   textmate_scope        = keyword.control
+}
+
+.proc : style {
+   color                 = light_yellow
+   textmate_scope        = entity.name.function
+}
+
+.variable : style {
+   color                 = cyan
+   textmate_scope        = variable
+}
+
+.operator : style {
+   color                 = white
+   textmate_scope        = keyword.operator
+}
+
+.numeric : style {
+   color                 = light_green
+   textmate_scope        = constant.numeric
+}
+
+.punctuation : style {
+   color                 = white
+   textmate_scope        = punctuation
+}
+
+.quotes : style {
+   color                 = orange
+   textmate_scope        = string
+}
+
+.quoted : style {
+   color                 = orange
+   textmate_scope        = string
+}
+
+.regexp : style {
+   color                 = red
+   textmate_scope        = string.regexp
+}
+
+.escaped : style {
+   color                 = gold
+   textmate_scope        = constant.character.escape
+}
+
+.illegal : style {
+   color                 = white
+   background_color      = red
+   textmate_scope        = invalid
+}
+
+.none : style {
+   color                 = white
+   textmate_scope        = none
+}
+
+}
+
+__VAR_TOKEN \= (\$(?:(?:[a-zA-Z0-9_]|::)+(?:\([^\)]+\))?|\{(?:[^\}]*|[^\}(]+\([^\})]+\))\}))
+
+__ESCAPE_CHARS \= (\\(?:\d{1,3}|x[a-fA-F0-9]{1,2}|u[a-fA-F0-9]{1,4}|U[a-fA-F0-9]{1,8}|.))
+
+__LIT_BRACES \= ((?:(?<!\\){)(?:[^{}\n]*(?:\g<1>(?:\\{|\\}|[^{}])*)*)})
+
+__TCL_CMDS \= (?:after|append|apply|array|auto_execok|auto_import|auto_load|auto_mkindex|auto_qualify|auto_reset|bgerror|binary|break|catch|cd|chan|clock|close|concat|continue|coroutine|dde|dict|encoding|eof|error|eval|exec|exit|expr|fblocked|fconfigure|fcopy|fileevent|file|flush|foreach|for|format|gets|global|glob|history|http|if|incr|info|interp|join|lappend|lassign|lindex|linsert|list|llength|lmap|load|lrange|lrepeat|lreplace|lreverse|lsearch|lset|lsort|memory|my|namespace|nextto|next|oo::class|oo::copy|oo::define|oo::objdefine|oo::object|open|package|parray|pid|pkg::create|pkg_mkIndex|platform::shell|proc|puts|pwd|read|regexp|registry|regsub|rename|return|scan|seek|self|set|socket|source|split|string|subst|switch|tailcall|tcl::prefix|tcl_endOfWord|tcl_findLibrary|tcl_startOfNextWord|tcl_startOfPreviousWord|tcl_wordBreakAfter|tcl_wordBreakBefore|tell|throw|time|trace|try|unknown|unload|unset|update|uplevel|upvar|variable|vwait|while|yieldto|yield)
+
+contexts [] {
+
+main : context {
+   : include "command";
+}
+
+command : context {
+   : pattern {
+      description     = "Line comments.";
+      regex          \= (^\s*#.*)
+      styles []       = .comment;
+   }
+   : pattern {
+      description     = "Leading/trailing curly braces.";
+      regex          \= (\{\s*$|^\s*\})
+      styles []       = .punctuation;
+   }
+   : pattern {
+      description     = "Proc command.";
+      regex          \= (?<=^|{)(\s*proc\s+)(\S+\s+)$${__LIT_BRACES}
+      styles []       = .command, .proc, .none;
+   }
+   : include "regexp";
+   : include "keywords";
+   : pattern {
+      description     = "All other commands. (NOTE: Iro doesn't support possessive quantifiers, but the grammar does; be sure to replace the second + with ++ after regenerating!)";
+      regex          \= (^\s*\S+|(?:(?<=[^\\]\[)[^\s\]]+(?!\])))
+      styles []       = .command;
+   }
+   : include "args";
+}
+
+regexp : context {
+   description        = "Special handling for regexp and regsub commands.";
+   : inline_push {
+      description     = "Push when we see regexp or regsub, and eat any switches and whitespace before the regex pattern.";
+      regex          \= ((?<=^|[\[{;])\s*(?:regexp|regsub)\s+)((?:(?:(?:-about|-all|-expanded|-indices|-inline|-lineanchor|-linestop|-line|-nocase|(?:-index\s+(?:end|\d+)(?:[\+\-]-?\d+)?))\s+)*(?:--\s+)?)?)
+      styles []       = .command, .none;
+      : pop {
+         description  = "Pop when we see whitespace. This should be safe, because we should start with no leading whitespace (thanks to it being consumed by the scope's begin regex), meaning that any whitespace that's part of the command's pattern will be consumed by one of the inner scopes.";
+         regex       \= (\s+)
+         styles []    = .none;
+      }
+      : include "braced_lit_re";
+      : inline_push {
+         description  = "Handle quoted regex pattern. Ensure that we still highlight variables and embedded commands correctly.";
+         regex       \= ((?:(?<!\\)"))
+         styles []    = .regexp;
+         : pop {
+            regex    \= ((?:(?<!\\)"))
+            styles [] = .regexp;
+         }
+         : include "braced_lit_re";
+         : include "embedded";
+         : include "variable";
+         : pattern {
+            description  = "All other quoted text.";
+            regex       \= (\\"|[^"])
+            styles []    = .regexp;
+         }
+      }
+      : include "variable";
+      : pattern {
+         description  = "Handle bare regex pattern.";
+         regex       \= (\S+)
+         styles []    = .regexp;
+      }
+   }
+   : include "args";
+}
+
+keywords : context {
+   : pattern {
+      description     = "Keywords.";
+      regex          \= ((?<=^|[\[{;])\s*(break|catch|continue|default|error|exit|foreach|for|if|return|switch|throw|try|while)\b)
+      styles []       = .keyword;
+   }
+   : pattern {
+      description     = "Inline keywords.";
+      regex          \= ((?<=^|})\s*(then|elseif|else)\b)
+      styles []       = .keyword;
+   }
+}
+
+args : context {
+   : include "quoted_args";
+   : include "numeric";
+   //: include "operator";
+   : pattern {
+      description     = "Inline comments.";
+      regex          \= ((?<=;)\s*#.*$)
+      styles []       = .comment;
+   }
+}
+
+word_lit : context {
+   : include "braced_lit";
+   : inline_push {
+      description     = "Handle quoted literal. Ensure that we still highlight variables and embedded commands correctly.";
+      regex          \= ((?:(?<!\\)"))
+      styles []       = .quoted;
+      : pop {
+         regex       \= ((?:(?<!\\)"))
+         styles []    = .quoted;
+      }
+      : include "braced_lit";
+      : include "embedded";
+      : include "variable";
+      : pattern {
+         description  = "All other quoted text.";
+         regex       \= (\\"|[^"])
+         styles []    = .quoted;
+      }
+   }
+   : include "variable";
+   : pattern {
+      description     = "Handle bare literal.";
+      regex          \= (\S+)
+      styles []       = .none;
+   }
+}
+
+braced_lit : context {
+   : pattern {
+      description    = "Handle braced literal.";
+      regex         \= $${__LIT_BRACES}
+      styles []      = .none;
+   }
+}
+
+braced_lit_re : context {
+   : pattern {
+      description    = "Handle braced regex pattern.";
+      regex         \= $${__LIT_BRACES}
+      styles []      = .regexp;
+   }
+}
+
+braced : context {
+   : inline_push {
+      regex          \= ((?<!\\)\{)
+      styles []       = .punctuation;
+      : pop {
+         regex       \= (\}([^\s\]]*))
+         styles []    = .punctuation;
+      }
+      : pattern {
+         regex       \= $${__ESCAPE_CHARS}
+         styles []    = .escaped;
+      }
+      : include "keywords";
+      : pattern {
+         description  = "Special handling for known commands.";
+         regex       \= ((?<={)\s*$${__TCL_CMDS}\s+)
+         styles []    = .command;
+      }
+      : include "braced_inner";
+      : include "args";
+   }
+}
+
+braced_inner : context {
+   : inline_push {
+      regex          \= (\{)
+      styles []       = .punctuation;
+      : pop {
+         regex       \= (\})
+         styles []    = .punctuation;
+      }
+      : pattern {
+         regex       \= (\\[{}])
+         styles []    = .escaped;
+      }
+      : include "numeric";
+      : include "braced_inner";
+      : include "args";
+   }
+}
+
+quoted : context {
+   : inline_push {
+      regex          \= ((?<!\\)")
+      styles []       = .quotes;
+      : pop {
+         regex       \= (")
+         styles []    = .quotes;
+      }
+      : include "quoted_args";
+      : pattern {
+         regex       \= ([^$["\\]+)
+         styles []    = .quoted;
+      }
+   }
+}
+
+quoted_args : context {
+   : include "braced";
+   : include "quoted";
+   : include "embedded";
+   : pattern {
+      regex          \= $${__ESCAPE_CHARS}
+      styles []       = .escaped;
+   }
+   : include "variable";
+}
+
+embedded : context {
+   : inline_push {
+      regex          \= ((?<!\\)\[)
+      styles []       = .punctuation;
+      : pop {
+         regex       \= ((?<!\\)\])
+         styles []    = .punctuation;
+      }
+      : include "command";
+   }
+}
+
+variable : context {
+   description        = "Tcl variables.";
+   : pattern {
+      regex          \= $${__VAR_TOKEN}
+      styles []       = .variable;
+   }
+}
+
+numeric : context {
+   description        = "Numeric literals.";
+   : pattern {
+      regex          \= ((?:\b|[\+\-\.])(?:0b[01]+|0o[0-7]+|0x[0-9a-fA-F]+|(?:\d*\.\d+(?:[Ee][-+]?\d+)?)|(?:\d+\.?[Ee][-+]?\d+)|\d+|[Ii][Nn][Ff]|[Nn][Aa][Nn])\b)
+      styles []       = .numeric;
+   }
+}
+
+operator : context {
+   description        = "Operators.";
+   : pattern {
+      regex          \= ((?<= |\d)(-|\+|~|&{1,2}|\|{1,2}|<{1,2}|>{1,2}|\*{1,2}|!|%|\/|<=|>=|={1,2}|!=|\^)(?= |\d))
+      styles []       = .operator;
+   }
+}
+
+}

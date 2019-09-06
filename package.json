@@ -1,0 +1,25 @@
+{
+  "name": "vscode-tcl",
+  "displayName": "Tcl",
+  "description": "Tcl syntax highlighting",
+  "version": "0.1.0",
+  "engines": {
+    "vscode": "^1.36.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [{
+      "id": "tcl",
+      "aliases": ["Tcl", "tcl"],
+      "extensions": [".tcl"],
+      "configuration": "./tcl.configuration.json"
+    }],
+    "grammars": [{
+      "language": "tcl",
+      "scopeName": "source.tcl",
+      "path": "./syntaxes/tcl.tmLanguage"
+    }]
+  }
+}
