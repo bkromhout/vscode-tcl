@@ -3,8 +3,13 @@
   "displayName": "Tcl",
   "description": "Tcl syntax highlighting",
   "version": "0.1.0",
+  "publisher": "bkromhout",
   "engines": {
     "vscode": "^1.36.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bkromhout/vscode-tcl.git"
   },
   "categories": [
     "Programming Languages"
