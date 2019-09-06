@@ -15,16 +15,25 @@
     "Programming Languages"
   ],
   "contributes": {
-    "languages": [{
-      "id": "tcl",
-      "aliases": ["Tcl", "tcl"],
-      "extensions": [".tcl"],
-      "configuration": "./tcl.configuration.json"
-    }],
-    "grammars": [{
-      "language": "tcl",
-      "scopeName": "source.tcl",
-      "path": "./syntaxes/tcl.tmLanguage"
-    }]
+    "languages": [
+      {
+        "id": "tcl",
+        "aliases": [
+          "Tcl",
+          "tcl"
+        ],
+        "extensions": [
+          ".tcl"
+        ],
+        "configuration": "./tcl.configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "tcl",
+        "scopeName": "source.tcl",
+        "path": "./syntaxes/tcl.tmLanguage"
+      }
+    ]
   }
 }
