@@ -213,6 +213,35 @@
       <key>patterns</key>
       <array> 
         <dict>
+          <key>begin</key>
+          <string>(\\\s*$)</string>
+          <key>beginCaptures</key>
+          <dict>
+            <key>1</key>
+            <dict>
+              <key>name</key>
+              <string>constant.character.escape.tcl</string>
+            </dict>
+          </dict>
+          <key>patterns</key>
+          <array> 
+            <dict>
+              <key>include</key>
+              <string>#command__1</string>
+            </dict>
+           </array>
+          <key>end</key>
+          <string>((?&lt;!\\\s)$)</string>
+          <key>endCaptures</key>
+          <dict>
+            <key>1</key>
+            <dict>
+              <key>name</key>
+              <string>none.tcl</string>
+            </dict>
+          </dict>
+        </dict>
+        <dict>
           <key>match</key>
           <string>(^\s*#.*)</string>
           <key>name</key>
@@ -267,6 +296,20 @@
           <string>keyword.tcl</string>
           <key>comment</key>
           <string>All other commands. (NOTE: Iro doesn&apos;t support possessive quantifiers, but the grammar does; be sure to replace the second + with ++ after regenerating!)</string>
+        </dict>
+        <dict>
+          <key>include</key>
+          <string>#args</string>
+        </dict>
+       </array>
+    </dict>
+    <key>command__1</key>
+    <dict>
+      <key>patterns</key>
+      <array> 
+        <dict>
+          <key>include</key>
+          <string>#keywords</string>
         </dict>
         <dict>
           <key>include</key>

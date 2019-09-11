@@ -119,6 +119,18 @@ main : context {
 }
 
 command : context {
+   : inline_push {
+      description     = "Line continuations.";
+      regex          \= (\\\s*$)
+      styles []       = .escaped;
+      : pop {
+         description  = "Note: Yes, it'd be nice if this was \s* rather than \s (note that newline qualifies here), but sadly Oniguruma Regexes lookbehinds must be fixed-width, so this is the best we can do. (Don't be fooled, \s* works in Iro but not in VS Code.)";
+         regex       \= ((?<!\\\s)$)
+         styles []    = .none;
+      }
+      : include "keywords";
+      : include "args";
+   }
    : pattern {
       description     = "Line comments.";
       regex          \= (^\s*#.*)
