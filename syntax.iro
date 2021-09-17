@@ -267,7 +267,7 @@ braced : context {
       regex          \= ((?<!\\)\{)
       styles []       = .punctuation;
       : pop {
-         regex       \= (\}([^\s\]]*))
+         regex       \= (\}([^\s\]"]*))
          styles []    = .punctuation;
       }
       : pattern {
