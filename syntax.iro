@@ -150,7 +150,7 @@ command : context {
    : include "keywords";
    : pattern {
       description     = "All other commands. (NOTE: Iro doesn't support possessive quantifiers, but the grammar does; be sure to replace the second + with ++ after regenerating!)";
-      regex          \= (^\s*\S+|(?:(?<=[^\\]\[)[^\s\]]+(?!\])))
+      regex          \= (^\s*[^\s"]+|(?:(?<=[^\\]\[)[^\s\]]+))
       styles []       = .command;
    }
    : include "args";
@@ -267,7 +267,7 @@ braced : context {
       regex          \= ((?<!\\)\{)
       styles []       = .punctuation;
       : pop {
-         regex       \= (\}([^\s\]]*))
+         regex       \= (\}([^\s\]"]*))
          styles []    = .punctuation;
       }
       : pattern {
