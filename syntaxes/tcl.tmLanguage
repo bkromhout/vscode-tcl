@@ -77,7 +77,7 @@
             </dict>
            </array>
           <key>end</key>
-          <string>(\}([^\s\]]*))</string>
+          <string>(\}([^\s\]\x{0022}]*))</string>
           <key>endCaptures</key>
           <dict>
             <key>1</key>
@@ -291,7 +291,7 @@
         </dict>
         <dict>
           <key>match</key>
-          <string>(^\s*\S+|(?:(?&lt;=[^\x{005c}]\[)[^\s\]]++(?!\])))</string>
+          <string>(^\s*\S+|(?:(?&lt;=[^\x{005c}]\[)[^\s\]]+(?!\])))</string>
           <key>name</key>
           <string>keyword.tcl</string>
           <key>comment</key>

@@ -2,7 +2,7 @@
   "name": "vscode-tcl",
   "displayName": "Tcl",
   "description": "Tcl syntax highlighting",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "publisher": "bkromhout",
   "engines": {
     "vscode": "^1.36.0"
